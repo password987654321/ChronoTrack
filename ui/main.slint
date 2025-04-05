@@ -1,0 +1,125 @@
+import { StandardListView, VerticalBox, Button, HorizontalBox } from "std-widgets.slint";
+
+component ColorButton inherits Rectangle {
+    in-out property <string> text;
+    border-radius: 8px;
+    height: 20px;
+    width: 30px;
+    background: #0000;
+    area := TouchArea {
+        width: parent.width;
+        height: parent.height;
+        clicked => {
+            root.background = #0000;
+        }
+    }
+    Text {
+        x: 0;
+        text: text;
+        color: white;
+    }
+}
+
+export component MainWindow inherits Window {
+    min-height: 400px;
+    min-width: 400px;
+    max-width: 10000px;
+    max-height: 10000px;
+    title: "ChronoTrack";
+    preferred-height: 400px;
+    preferred-width: 400px;
+
+    VerticalLayout {
+
+        // Toolbar
+        Rectangle {
+            background: black;
+            height: 20px;
+            width: parent.width;
+            Button {
+                height: 20px;
+                width: 10px;
+                text: "File";
+            }
+        }
+        
+        // Main Pane
+        HorizontalBox {
+            spacing: 5px;
+                
+            // Left Side
+            VerticalBox {
+                min-width: 50px;
+                max-width: 150px;
+                label := Text {
+                    text: "  Timers:";
+                    color: yellowgreen;
+                    font-family: "JetBrainsMono Nerd Font";
+                }
+                timers := StandardListView {
+                    model: [
+                        {text: "Blue", font-family: "JetBrainsMono Nerd Font"},
+                        {text: "Red", font-family: "JetBrainsMono Nerd Font"},
+                        {text: "Green", font-family: "JetBrainsMono Nerd Font"},
+                        {text: "Yellow", font-family: "JetBrainsMono Nerd Font"},
+                        {text: "Black", font-family: "JetBrainsMono Nerd Font"},
+                        {text: "White", font-family: "JetBrainsMono Nerd Font"},
+                        {text: "Magenta", font-family: "JetBrainsMono Nerd Font"},
+                        {text: "Cyan", font-family: "JetBrainsMono Nerd Font"}
+                    ];
+                    current-item-changed(index) => {
+                        debug("Current item: ", index);
+                    }
+                    
+                }
+                Button {
+                    callback addTimer();
+                    text: "+";
+                    clicked => {
+                        addTimer();
+                    }
+                }
+                Button {
+                    callback removeTimer();
+                    text: "-";
+                    clicked => {
+                        removeTimer();
+                    }
+                }
+            }
+            
+            // Right Side
+            HorizontalBox {
+                VerticalBox {
+                    Rectangle {
+                        Text {
+                            text: "hello";
+                            horizontal-alignment: center;
+                            font-size: 32pt;
+                            font-family: "JetBrainsMono Nerd Font";
+                        }
+
+                    }
+                    VerticalBox {
+                        alignment: start;
+                        HorizontalLayout {
+                            spacing: 5px;
+                            alignment: center;
+                            ColorButton {
+                                text: "start";
+                                background: green;
+                                max-height: 100px;
+                            }
+                            ColorButton {
+                                text: "stop";
+                                background: red;
+                                max-height: 100px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
