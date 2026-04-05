@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="256" height="256">
+  <defs>
+    <!-- Rust-inspired gradient -->
+    <linearGradient id="rustGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E57324" />
+      <stop offset="100%" stop-color="#B7410E" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Stopwatch Side Button -->
+  <g transform="rotate(45 60 65)">
+    <rect x="54" y="10" width="12" height="12" rx="3" fill="#2D2D2D" filter="url(#shadow)" />
+  </g>
+
+  <!-- Stopwatch Top Button -->
+  <rect x="52" y="8" width="16" height="15" rx="3" fill="url(#rustGrad)" />
+  <rect x="46" y="4" width="28" height="6" rx="2" fill="#2D2D2D" filter="url(#shadow)" />
+
+  <!-- Main Body Outer -->
+  <circle cx="60" cy="65" r="45" fill="#2D2D2D" filter="url(#shadow)" />
+  
+  <!-- Main Body Inner (The Gear / Clock face) -->
+  <circle cx="60" cy="65" r="38" fill="#1A1A1A" stroke="url(#rustGrad)" stroke-width="5" stroke-dasharray="12 7.8" />
+  
+  <!-- Inner Rim -->
+  <circle cx="60" cy="65" r="33" fill="none" stroke="#2D2D2D" stroke-width="2" />
+
+  <!-- Tick marks -->
+  <circle cx="60" cy="38" r="2.5" fill="#FFFFFF" />
+  <circle cx="60" cy="92" r="2.5" fill="#FFFFFF" />
+  <circle cx="33" cy="65" r="2.5" fill="#FFFFFF" />
+  <circle cx="87" cy="65" r="2.5" fill="#FFFFFF" />
+
+  <!-- Clock Hand 1 (Minutes - Rust Orange) -->
+  <line x1="60" y1="65" x2="60" y2="40" stroke="url(#rustGrad)" stroke-width="5" stroke-linecap="round" />
+  
+  <!-- Clock Hand 2 (Hours - White) -->
+  <line x1="60" y1="65" x2="78" y2="65" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" />
+  
+  <!-- Clock Center Pivot -->
+  <circle cx="60" cy="65" r="5" fill="#FFFFFF" />
+  <circle cx="60" cy="65" r="2" fill="#B7410E" />
+</svg>

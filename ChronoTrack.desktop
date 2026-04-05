@@ -1,0 +1,16 @@
+[Desktop Entry]
+Categories=Utility;
+Comment=
+Exec=/home/marcus/.local/bin/ChronoTrack
+Icon=/home/marcus/.local/share/pixmaps/chronotrack_icon.png
+Name=ChronoTrack
+NoDisplay=false
+Path=
+PrefersNonDefaultGPU=false
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+WorkingDirectory=
+X-KDE-SubstituteUID=false
+X-KDE-Username=
