@@ -1,125 +1,278 @@
-import { StandardListView, VerticalBox, Button, HorizontalBox } from "std-widgets.slint";
+import { StandardListView, VerticalBox, Button, HorizontalBox, ListView, LineEdit } from "std-widgets.slint";
 
-component ColorButton inherits Rectangle {
-    in-out property <string> text;
-    border-radius: 8px;
-    height: 20px;
-    width: 30px;
-    background: #0000;
-    area := TouchArea {
+export struct TimerData {
+    name: string,
+    time: string,
+    running: bool,
+}
+
+// Modern Dark Theme
+export global Theme {
+    out property <brush> bg: #121212;
+    out property <brush> surface: #1e1e1e;
+    out property <brush> primary: #bb86fc;
+    out property <brush> text: #e1e1e1;
+    out property <brush> accent-start: #03dac6;
+    out property <brush> accent-stop: #cf6679;
+}
+
+component ColorButton inherits TouchArea{
+    in property <string> text;
+    in property <TextHorizontalAlignment> horizontal-alignment: center;
+    in property <TextVerticalAlignment> vertical-alignment: center;
+    in-out property <brush> background: Theme.primary;
+    callback my-clicked();
+    
+    // Forward the click
+    clicked => { root.my-clicked(); }
+    
+    Rectangle {
+        border-radius: 4px;
         width: parent.width;
         height: parent.height;
-        clicked => {
-            root.background = #0000;
-        }
+        background: background;
     }
+    preferred-width: 80px;
+    preferred-height: 35px;
+    
     Text {
-        x: 0;
         text: text;
-        color: white;
+        color: Theme.bg;
+        font-weight: 700;
+        horizontal-alignment: horizontal-alignment;
+        vertical-alignment: vertical-alignment;
     }
 }
 
 export component MainWindow inherits Window {
+    in-out property <[TimerData]> timers-data;
+    in-out property <int> selected-timer-index: -1;
+    in-out property <bool> editing-name: false;
+    
+    callback addTimer();
+    callback removeTimer(int);
+    callback toggleTimer(int);
+    callback resetTimer(int);
+    callback updateName(int, string);
+    callback saveData();
+
     min-height: 400px;
-    min-width: 400px;
-    max-width: 10000px;
-    max-height: 10000px;
+    min-width: 600px;
+    background: Theme.bg;
     title: "ChronoTrack";
-    preferred-height: 400px;
-    preferred-width: 400px;
-
+    
+    file-popup := PopupWindow {
+        x: 10px;
+        y: 30px;
+        Rectangle {
+            background: Theme.surface;
+            border-color: Theme.primary;
+            border-width: 1px;
+            border-radius: 4px;
+            width: 100px;
+            
+            VerticalLayout {
+                padding: 4px;
+                Rectangle {
+                    height: 30px;
+                    background: save-touch.has-hover ? Theme.primary : transparent;
+                    border-radius: 2px;
+                    Text {
+                        text: "Save";
+                        color: Theme.text;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    save-touch := TouchArea {
+                        clicked => {
+                            root.saveData();
+                            file-popup.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     VerticalLayout {
-
         // Toolbar
         Rectangle {
-            background: black;
-            height: 20px;
-            width: parent.width;
-            Button {
-                height: 20px;
-                width: 10px;
-                text: "File";
+            background: Theme.surface;
+            height: 30px;
+            
+            HorizontalLayout {
+                alignment: start;
+                padding-left: 10px;
+                
+                TouchArea {
+                    width: 80px;
+                    clicked => { file-popup.show(); }
+                    
+                    Text {
+                        text: "File \u{25BE}";
+                        color: parent.has-hover ? Theme.primary : Theme.text;
+                        font-size: 10pt;
+                        vertical-alignment: center;
+                    }
+                }
+                
+                Text {
+                    text: "|  ChronoTrack";
+                    color: Theme.text;
+                    font-size: 10pt;
+                    vertical-alignment: center;
+                }
             }
         }
         
         // Main Pane
         HorizontalBox {
-            spacing: 5px;
-                
+            spacing: 10px;
+            padding: 10px;
+            
             // Left Side
-            VerticalBox {
-                min-width: 50px;
-                max-width: 150px;
-                label := Text {
-                    text: "  Timers:";
-                    color: yellowgreen;
-                    font-family: "JetBrainsMono Nerd Font";
-                }
-                timers := StandardListView {
-                    model: [
-                        {text: "Blue", font-family: "JetBrainsMono Nerd Font"},
-                        {text: "Red", font-family: "JetBrainsMono Nerd Font"},
-                        {text: "Green", font-family: "JetBrainsMono Nerd Font"},
-                        {text: "Yellow", font-family: "JetBrainsMono Nerd Font"},
-                        {text: "Black", font-family: "JetBrainsMono Nerd Font"},
-                        {text: "White", font-family: "JetBrainsMono Nerd Font"},
-                        {text: "Magenta", font-family: "JetBrainsMono Nerd Font"},
-                        {text: "Cyan", font-family: "JetBrainsMono Nerd Font"}
-                    ];
-                    current-item-changed(index) => {
-                        debug("Current item: ", index);
+            Rectangle {
+                background: Theme.surface;
+                border-radius: 8px;
+                min-width: 150px;
+                max-width: 250px;
+                
+                VerticalBox {
+                    padding: 15px;
+                    spacing: 10px;
+                    
+                    Text {
+                        text: "Timers";
+                        horizontal-alignment: center;
+                        color: Theme.primary;
+                        font-size: 14pt;
+                        font-weight: 700;
                     }
                     
-                }
-                Button {
-                    callback addTimer();
-                    text: "+";
-                    clicked => {
-                        addTimer();
+                    timers := ListView {
+                        for data[index] in timers-data : Rectangle {
+                            min-height: 40px;
+                            background: index == root.selected-timer-index ? Theme.primary : Theme.bg;
+                            border-radius: 4px;
+                            
+                            TouchArea {
+                                clicked => { 
+                                    root.selected-timer-index = index; 
+                                    root.editing-name = false;
+                                }
+                                
+                                VerticalLayout {
+                                    alignment: center;
+                                    padding: 8px;
+                                    Text { 
+                                        text: data.name; 
+                                        color: index == root.selected-timer-index ? Theme.bg : Theme.text; 
+                                        font-size: 11pt; 
+                                        font-weight: 700;
+                                        overflow: elide;
+                                        horizontal-alignment: center;
+                                    }
+                                    Text { 
+                                        text: data.time; 
+                                        color: index == root.selected-timer-index ? Theme.bg : Theme.text; 
+                                        font-size: 9pt; 
+                                        horizontal-alignment: center;
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-                Button {
-                    callback removeTimer();
-                    text: "-";
-                    clicked => {
-                        removeTimer();
+                    
+                    HorizontalBox {
+                        spacing: 10px;
+                        ColorButton {
+                            text: "+";
+                            background: Theme.accent-start;
+                            my-clicked => { root.addTimer(); }
+                        }
+                        ColorButton {
+                            text: "-";
+                            background: Theme.accent-stop;
+                            my-clicked => { root.removeTimer(root.selected-timer-index); }
+                        }
                     }
                 }
             }
-            
-            // Right Side
-            HorizontalBox {
-                VerticalBox {
-                    Rectangle {
-                        Text {
-                            text: "hello";
-                            horizontal-alignment: center;
-                            font-size: 32pt;
-                            font-family: "JetBrainsMono Nerd Font";
-                        }
 
-                    }
-                    VerticalBox {
-                        alignment: start;
-                        HorizontalLayout {
-                            spacing: 5px;
-                            alignment: center;
-                            ColorButton {
-                                text: "start";
-                                background: green;
-                                max-height: 100px;
-                            }
-                            ColorButton {
-                                text: "stop";
-                                background: red;
-                                max-height: 100px;
-                            }
+            // Right Side
+            Rectangle {
+                background: Theme.surface;
+                border-radius: 8px;
+                
+                TouchArea {
+                    clicked => { root.editing-name = false; }
+                }
+                
+                if root.selected-timer-index >= 0 && root.selected-timer-index < root.timers-data.length : VerticalBox {
+                    alignment: space-around;
+                    padding: 20px;
+                    
+                    if root.editing-name : LineEdit {
+                        text: root.timers-data[root.selected-timer-index].name;
+                        font-size: 24pt;
+                        horizontal-alignment: center;
+                        accepted(t) => { 
+                            root.updateName(root.selected-timer-index, t); 
+                            root.editing-name = false;
                         }
+                    }
+                    if !root.editing-name : Rectangle {
+                        preferred-height: 50px;
+                        Text {
+                            text: root.timers-data[root.selected-timer-index].name;
+                            color: Theme.text;
+                            font-size: 24pt;
+                            horizontal-alignment: center;
+                        }
+                        TouchArea {
+                            clicked => { root.editing-name = true; }
+                        }
+                    }
+
+                    Text {
+                        text: root.timers-data[root.selected-timer-index].time;
+                        color: Theme.text;
+                        horizontal-alignment: center;
+                        font-size: 48pt;
+                    }
+
+                    HorizontalBox {
+                        alignment: center;
+                        spacing: 20px;
+                        
+                        ColorButton {
+                            text: root.timers-data[root.selected-timer-index].running ? "STOP" : "START";
+                            background: root.timers-data[root.selected-timer-index].running ? Theme.accent-stop : Theme.accent-start;
+                            preferred-width: 120px;
+                            preferred-height: 40px;
+                            my-clicked => { root.toggleTimer(root.selected-timer-index); }
+                        }
+                        
+                        ColorButton {
+                            text: "RESET";
+                            background: Theme.primary;
+                            preferred-width: 120px;
+                            preferred-height: 40px;
+                            my-clicked => { root.resetTimer(root.selected-timer-index); }
+                        }
+                    }
+                }
+
+                if root.selected-timer-index < 0 || root.selected-timer-index >= root.timers-data.length : VerticalBox {
+                    alignment: center;
+                    Text {
+                        text: "Select or create a timer";
+                        color: Theme.text;
+                        horizontal-alignment: center;
+                        font-size: 16pt;
                     }
                 }
             }
         }
     }
 }
-
