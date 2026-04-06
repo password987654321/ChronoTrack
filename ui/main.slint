@@ -27,10 +27,13 @@ component ColorButton inherits TouchArea{
     clicked => { root.my-clicked(); }
     
     Rectangle {
+        x: root.pressed ? 1px : 0px;
+        y: root.pressed ? 1px : 0px;
+        width: parent.width - (root.pressed ? 2px : 0px);
+        height: parent.height - (root.pressed ? 2px : 0px);
         border-radius: 4px;
-        width: parent.width;
-        height: parent.height;
         background: background;
+        animate x, y, width, height { duration: 70ms; easing: ease-out; }
     }
     preferred-width: 80px;
     preferred-height: 35px;
@@ -55,6 +58,7 @@ export component MainWindow inherits Window {
     callback resetTimer(int);
     callback updateName(int, string);
     callback saveData();
+    callback saveDataAs();
 
     min-height: 400px;
     min-width: 600px;
@@ -85,7 +89,9 @@ export component MainWindow inherits Window {
                     }
                     save-touch := TouchArea {
                         clicked => {
-                            root.saveData();
+                            // "Save" should export using a file-save dialog.
+                            // If the dialog is cancelled, do nothing.
+                            root.saveDataAs();
                             file-popup.close();
                         }
                     }
